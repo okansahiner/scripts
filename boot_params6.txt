@@ -1,0 +1,8 @@
+one interface
+linux ip=<IP> netmask=<NMASK> gateway=<GW> dns=IP.IP,IP.IP hostname=<HOSTNAME> ks=https://IP.IP/ks/conf/physical/prod/ks6.cfg noverifyssl
+
+more interface
+linux ip=<IP> netmask=<NMASK> gateway=<GW> dns=IP.IP,IP.IP ksdevice=ethX ifname=primary hostname=<HOSTNAME> ks=https://IP.IP/ks/conf/physical/prod/ks6.cfg noverifyssl
+
+for bonding example
+linux bond=bond0:eth0,eth1:mode=active-backup,primary=eth0 dns=IP.IP,IP.IP ks=https://IP.IP/ks/conf/physical/prod/ks6.cfg noverifyssl ip=<IP> netmask=<NMASK> gateway=<GW> hostname=<HOSTNAME>
