@@ -1,0 +1,63 @@
+
+# The loopback interface should accept all traffic
+iptables -A INPUT  -i lo -j ACCEPT
+iptables -A OUTPUT -o lo -j ACCEPT
+
+
+# Allow outbound DNS queries from the FW and the replies too
+#iptables -A INPUT -p udp -i eth0 --sport 53 --dport 1024:65535 -j ACCEPT
+#iptables -A OUTPUT -p udp -o eth0 --dport 53 --sport 1024:65535 -j ACCEPT
+
+
+# Allow port 22 (SSH) connections to the firewall
+iptables -A INPUT -p tcp -i eth0 --dport 22 --sport 1024:65535 -m state --state NEW,ESTABLISHED -j ACCEPT
+#iptables -A OUTPUT -p tcp -o eth0 --sport 22 --dport 1024:65535 -m state --state ESTABLISHED -j ACCEPT
+
+
+# Allow ping to the firewall
+iptables -A INPUT -p icmp --icmp-type 8 -i eth0  -m state --state NEW,ESTABLISHED,RELATED -j ACCEPT
+#iptables -A OUTPUT -p icmp --icmp-type 0 -o eth0 -m state --state ESTABLISHED,RELATED -j ACCEPT
+
+
+# forward http queries to internal server
+iptables -A FORWARD -i eth0 -p tcp --dport 80 -j ACCEPT
+iptables -t nat -A PREROUTING -i eth0 -p tcp --dport 80 -j DNAT --to 10.0.0.61:80
+
+
+# forward https queries to internal server
+iptables -A FORWARD -i eth0 -p tcp --dport 443 -j ACCEPT
+iptables -t nat -A PREROUTING -i eth0 -p tcp --dport 443 -j DNAT --to 10.0.0.61:443
+
+
+# forward for vpn tunnel to internal vpn server
+iptables -A FORWARD -i eth0 -p tcp --dport 1194 -j ACCEPT
+iptables -t nat -A PREROUTING -i eth0 -p tcp --dport 1194 -j DNAT --to 10.0.0.61:1194
+
+
+# Allow forwarded packets from internal network and allow established connections
+iptables -A FORWARD -o eth0 -i eth1 -s 10.0.0.0/24 -m conntrack --ctstate NEW -j ACCEPT
+iptables -A FORWARD -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT
+
+
+# this rule for nat
+iptables -t nat -F POSTROUTING
+iptables -t nat -A POSTROUTING -o eth0 -j MASQUERADE
+
+
+# Allow established and related connections to firewall
+iptables -A INPUT -j ACCEPT -m state --state ESTABLISHED,RELATED -i eth0 -p tcp 
+
+
+# Allow all connections from firewall
+iptables -A OUTPUT -o eth0 -m state --state NEW,ESTABLISHED,RELATED -j ACCEPT
+
+
+# Drop any packet that does not match below
+iptables -A INPUT -i eth0 -j DROP
+iptables -A OUTPUT -o eth0 -j DROP
+iptables -A FORWARD -i eth0 -j DROP
+
+
+
+
+

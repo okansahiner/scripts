@@ -2,7 +2,7 @@
 
 ############
 
-INIT_HOSTNAME=kube01
+INIT_HOSTNAME=gitlab
 IP=192.168.122.20
 
 ###########
